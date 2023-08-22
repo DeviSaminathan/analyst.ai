@@ -1,0 +1,40 @@
+import requests
+import re
+from bs4 import BeautifulSoup
+
+base_url = "https://www.amazon.in/s"
+search_query = "bags"
+num_pages = 20
+
+for page in range(1, num_pages + 1):
+    params = {
+        "k": search_query,
+        "page": page
+    }
+
+    response = requests.get(base_url, params=params)
+    soup = BeautifulSoup(response.content, "html.parser")
+
+    products = soup.find_all("div", {"data-asin": re.compile(r'\w+')})
+
+    for product in products:
+        product_url = "https://www.amazon.in" + product.find("a", {"class": "a-link-normal"})["href"]
+
+        product_name_tag = product.find("span", {"class": "a-text-normal"})
+        product_name = product_name_tag.text if product_name_tag else "N/A"
+
+        product_price_tag = product.find("span", {"class": "a-offscreen"})
+        product_price = product_price_tag.text if product_price_tag else "N/A"
+
+        rating_tag = product.find("span", {"class": "a-icon-alt"})
+        rating = rating_tag.text if rating_tag else "N/A"
+
+        num_reviews_tag = product.find("span", {"class": "a-size-base"})
+        num_reviews = num_reviews_tag.text if num_reviews_tag else "N/A"
+
+        print("Product URL:", product_url)
+        print("Product Name:", product_name)
+        print("Product Price:", product_price)
+        print("Rating:", rating)
+        print("Number of Reviews:", num_reviews)
+        print("-" * 30)
